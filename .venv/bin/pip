@@ -1,4 +1,4 @@
-#!/Users/nikitamarshchonok/HWAssigment/.venv/bin/python3.11
+#!/Users/nikitamarshchonok/Desktop/gems-agent-fastapi/.venv/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys
