@@ -5,3 +5,7 @@ python-dotenv>=1.0.1
 requests>=2.32.0
 duckduckgo_search>=6.2.6
 openai>=1.45.0
+
+numpy>=1.26
+pypdf>=4.2.0
+python-multipart>=0.0.9
