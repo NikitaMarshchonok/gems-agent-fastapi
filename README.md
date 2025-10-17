@@ -11,17 +11,21 @@ Project structure
 ![Project structure](pics/1.png)
 
 
-
 Ollama version & models
 
+![Ollama version & models](pics/2.png)
 
 
-.env (no secrets)
+.env (no secrets
 
+![.env (no secrets)](pics/3.png)
 
 
 Healthcheck OK
 
+![Healthcheck OK](pics/4.png)
 
 
 Chat result (itinerary)
+
+![Chat result (itinerary)](pics/5.png)
