@@ -5,8 +5,8 @@ A lightweight "Gems-like" agent server (profiles, tool-use) built on FastAPI wit
 
 ## 📸 Screenshots
 
-Put your images into the repo at screenshots/ with these exact names.
 
+Project structure
 ![Project structure](pics/1.png)
 
 
