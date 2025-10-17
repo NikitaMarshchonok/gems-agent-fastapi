@@ -7,6 +7,7 @@ A lightweight "Gems-like" agent server (profiles, tool-use) built on FastAPI wit
 
 
 Project structure
+
 ![Project structure](pics/1.png)
 
 
