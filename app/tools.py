@@ -2,7 +2,7 @@ from typing import List
 import ast, operator as op
 from duckduckgo_search import DDGS
 
-# ---------- Calculator (safe eval) ----------
+# Calculator (safe eval)
 _ALLOWED = {
     ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul,
     ast.Div: op.truediv, ast.Pow: op.pow, ast.USub: op.neg,
@@ -34,7 +34,7 @@ def calculator(expr: str) -> str:
     except Exception as e:
         return f"Calculator error: {e}"
 
-# ---------- Web search (DuckDuckGo) ----------
+#  Web search (DuckDuckGo)
 def web_search(query: str, max_results: int = 5) -> str:
     try:
         results = []
