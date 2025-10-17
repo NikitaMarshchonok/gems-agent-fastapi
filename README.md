@@ -29,3 +29,24 @@ Healthcheck OK
 Chat result (itinerary)
 
 ![Chat result (itinerary)](pics/4.png)
+
+Tip: If you prefer an English chat send the prompt: “Plan a 2-day itinerary in Paris. Include logistics and approximate prices in EUR. Answer in English only.”
+
+
+##  Quick Start
+Requirements
+
+Python 3.11+
+
+macOS/Linux
+
+Ollama running locally
+
+
+1) Setup
+   python3 -m venv .venv
+
+   source .venv/bin/activate
+
+   pip install -r requirements.txt
+
