@@ -175,3 +175,40 @@ Notes & Tips
       awk 'BEGIN{printf "{"}{printf "\"system_prompt\":\"You are a world-class travel planner. Always respond in English. Be concise, structured, and pragmatic.\""; printf "}"}' | \
       
       curl -s -X PUT "http://127.0.0.1:8000/gems/$TRAVEL_ID" -H 'Content-Type: application/json' --data-binary @- | jq
+
+
+
+If you see \uXXXX in console output — that’s normal JSON escaping. Use jq -r '.content' or Python with ensure_ascii=False to print clean text.
+
+
+## Troubleshooting
+
+500 on /chat → check .env model name; ensure Ollama is running; restart uvicorn.
+
+Ollama OK test:
+
+      curl -s http://127.0.0.1:11434/api/chat \
+      -H 'Content-Type: application/json' \
+      -d '{"model":"llama3.1:8b","messages":[{"role":"user","content":"say ok"}],"stream":false}' | jq
+
+
+## Repository Layout
+
+      app/
+      main.py # FastAPI routes
+      llm.py # LLM backends (Ollama/OpenAI)
+      tools.py # tools: web_search, calculator
+      models.py # pydantic models
+      store.py # in-memory profile storage
+      .env.example
+      requirements.txt
+
+
+Contact:
+
+telegram: @nikitamarshchonok
+
+LinkedIn: https://www.linkedin.com/in/nikita-marshchonok
+
+email: n.marshchonok@gmail.com
+
