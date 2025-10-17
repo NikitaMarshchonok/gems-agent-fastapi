@@ -1,214 +1,156 @@
-# Gems Agent (FastAPI)
-
-A lightweight "Gems-like" agent server (profiles, tool-use) built on FastAPI with Ollama as the default LLM backend. Comes with ready-made profiles (Travel, Code Helper, English Tutor) and tools (web_search, calculator).
-
-
-## 📸 Screenshots
-
-
-Project structure
-
-![Project structure](pics/1.png)
-
-
-Ollama version & models
-
-![Ollama version & models](pics/2.png)
-
-
-.env (no secrets
-
-![.env (no secrets)](pics/3.png)
-
-
-Healthcheck OK
-
-![Healthcheck OK](pics/5.png)
-
-
-Chat result (itinerary)
-
-![Chat result (itinerary)](pics/4.png)
-
-Tip: If you prefer an English chat send the prompt: “Plan a 2-day itinerary in Paris. Include logistics and approximate prices in EUR. Answer in English only.”
-
-
-##  Quick Start
-Requirements
-
-Python 3.11+
-
-macOS/Linux
-
-Ollama running locally
-
-
-1) Setup
-   
-   python3 -m venv .venv
-
-   source .venv/bin/activate
-
-   pip install -r requirements.txt
-
-2) Ollama
-
-   install & start (Homebrew on macOS):
-
-   brew install ollama
-
-   brew services start ollama
-
-   ollama pull llama3.1:8b
-
-3) Environment
-
-   cp .env.example .env
-
-   Open .env and set:
-
-   LLM_BACKEND=ollama
-   
-   OLLAMA_BASE_URL=http://127.0.0.1:11434
-   
-   OLLAMA_MODEL=llama3.1:8b
-
-
-4) Run the server
-
-   uvicorn app.main:app --reload --port 8000
-
-   You should see: Uvicorn running on http://127.0.0.1:8000 and Application startup complete.
-
-
-
-## Smoke Test (copy-paste)
-
-In a new terminal (while the server is running):
-      
-      health
-      curl -s http://127.0.0.1:8000/health | jq
-
-
-      list profiles ("gems")
-      curl -s http://127.0.0.1:8000/gems | jq
-
-
-      pick Travel id
-      TRAVEL_ID=$(curl -s http://127.0.0.1:8000/gems | jq -r '.[] | select(.name=="Travel") | .id')
-
-
-      echo "TRAVEL_ID=$TRAVEL_ID"
-
-
-      chat (English)
-      cat > req_en.json <<'JSON'
-      {
-      "gem_id": "REPLACE_ME",
-      "messages": [
-      { "role": "user", "content": "Plan a 2-day itinerary in Paris. Include logistics and approximate prices in EUR. Answer in English only." }
-      ],
-      "tools_mode": "auto"
-      }
-      JSON
-
-
-      sed -i '' "s/REPLACE_ME/$TRAVEL_ID/" req_en.json 2>/dev/null || sed -i "s/REPLACE_ME/$TRAVEL_ID/" req_en.json
-
-
-      pretty print only the text content (use jq)
-      curl -s -X POST http://127.0.0.1:8000/chat \
-      -H 'Content-Type: application/json' \
-      --data-binary @req_en.json | jq -r '.content'
-
-If you don’t have jq, use Python to print Unicode nicely:
-
-      curl -s -X POST http://127.0.0.1:8000/chat -H 'Content-Type: application/json' --data-binary @req_en.json \
-      | python - <<'PY'
-      import sys, json
-      print(json.dumps(json.load(sys.stdin), ensure_ascii=False, indent=2))
-      PY
-
-API Overview
-
-   GET /health — service status
-
-   GET /gems — list profiles
-
-   GET /gems/{id} — get a profile
-
-   PUT /gems/{id} — update profile fields (model, temperature, system_prompt)
-
-   POST /chat — chat with a profile
-
-
-
-POST /chat body
-
-      {
-      "gem_id": "<uuid>",
-      "messages": [{"role":"user","content":"..."}],
-      "tools_mode": "auto" | "off"
-      }
-
-Response (simplified):
-
-      {
-      "content": "... final text ...",
-      "used_tool": null | "web_search" | "calculator",
-      "tool_input": null | "..."
-      }
-
-
-Open interactive docs:    http://127.0.0.1:8000/docs
-
-
-
-Notes & Tips
-
-   Model quality matters. llama3.1:8b is a good local default; smaller models may hallucinate.
-
-   To force English responses by default, you can update the Travel profile:
-
-      TRAVEL_ID=$(curl -s http://127.0.0.1:8000/gems | jq -r '.[] | select(.name=="Travel") | .id')
-      
-      awk 'BEGIN{printf "{"}{printf "\"system_prompt\":\"You are a world-class travel planner. Always respond in English. Be concise, structured, and pragmatic.\""; printf "}"}' | \
-      
-      curl -s -X PUT "http://127.0.0.1:8000/gems/$TRAVEL_ID" -H 'Content-Type: application/json' --data-binary @- | jq
-
-
-
-If you see \uXXXX in console output — that’s normal JSON escaping. Use jq -r '.content' or Python with ensure_ascii=False to print clean text.
-
-
-## Troubleshooting
-
-500 on /chat → check .env model name; ensure Ollama is running; restart uvicorn.
-
-Ollama OK test:
-
-      curl -s http://127.0.0.1:11434/api/chat \
-      -H 'Content-Type: application/json' \
-      -d '{"model":"llama3.1:8b","messages":[{"role":"user","content":"say ok"}],"stream":false}' | jq
-
-
-## Repository Layout
-
-      app/
-      main.py # FastAPI routes
-      llm.py # LLM backends (Ollama/OpenAI)
-      tools.py # tools: web_search, calculator
-      models.py # pydantic models
-      store.py # in-memory profile storage
-      .env.example
-      requirements.txt
-
-
-Contact:
-
-telegram: @nikitamarshchonok
-
-LinkedIn: https://www.linkedin.com/in/nikita-marshchonok
-
-email: n.marshchonok@gmail.com
-
+# 🤖 Gems Agent FastAPI
+
+Аналог Gemini Gems для создания AI агентов с кастомными инструкциями и базой знаний.
+
+## 🚀 Быстрый старт
+
+### 1. Установка зависимостей
+```bash
+make install
+# или
+pip install -r requirements.txt
+```
+
+### 2. Запуск сервера
+
+#### Через VS Code:
+1. Открой проект в VS Code
+2. Нажми `F5` или `Ctrl+Shift+P` → "Debug: Start Debugging"
+3. Выбери "Run FastAPI Server"
+
+#### Через терминал:
+```bash
+# Режим разработки
+make dev
+# или
+python run.py
+
+# Прямой запуск
+make run
+# или
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 3. Открыть веб-интерфейс
+```
+http://localhost:8000/manage
+```
+
+## 🎯 Возможности
+
+- ✅ **Создание агентов** с кастомными инструкциями
+- ✅ **Загрузка файлов** с drag & drop
+- ✅ **База знаний** с RAG поиском
+- ✅ **Инструменты** (web_search, calculator, kb_search)
+- ✅ **Шаблоны** для быстрого старта
+- ✅ **Тестирование** агентов в реальном времени
+- ✅ **Редактирование** существующих агентов
+
+## 📁 Структура проекта
+
+```
+gems-agent-fastapi/
+├── app/
+│   ├── main.py          # FastAPI приложение
+│   ├── models.py        # Pydantic модели
+│   ├── store.py         # Хранение данных
+│   ├── llm.py          # LLM интеграция
+│   ├── tools.py        # Инструменты агентов
+│   └── kb.py           # База знаний
+├── data/               # Данные агентов
+├── .vscode/            # Конфигурация VS Code
+├── .env                # Переменные окружения
+├── run.py              # Скрипт запуска
+├── Makefile            # Команды для разработки
+└── requirements.txt    # Зависимости
+```
+
+## 🔧 API эндпоинты
+
+- `GET /health` - Проверка здоровья
+- `GET /templates` - Список шаблонов
+- `GET /gems` - Список агентов
+- `POST /gems` - Создание агента
+- `POST /gems/{id}/files` - Загрузка файлов
+- `POST /chat` - Чат с агентом
+- `GET /manage` - Веб-интерфейс
+
+## ⚙️ Конфигурация
+
+Настройки в файле `.env`:
+
+```env
+# LLM Backend
+LLM_BACKEND=ollama
+EMBED_BACKEND=ollama
+
+# Ollama (по умолчанию)
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llama3.1:8b
+OLLAMA_EMBED_MODEL=nomic-embed-text
+
+# OpenAI (опционально)
+# OPENAI_API_KEY=your_key_here
+# OPENAI_MODEL=gpt-4o-mini
+```
+
+## 🛠️ Разработка
+
+### Команды Makefile:
+```bash
+make install  # Установить зависимости
+make dev      # Запустить в режиме разработки
+make run      # Запустить через uvicorn
+make prod     # Запустить в продакшене
+make test     # Тестировать API
+make clean    # Очистить кэш
+```
+
+### VS Code:
+- `F5` - Запуск в режиме отладки
+- `Ctrl+Shift+P` → "Python: Select Interpreter" - выбор интерпретатора
+- `Ctrl+Shift+P` → "Debug: Start Debugging" - запуск отладки
+
+## 📝 Использование
+
+1. **Выбери шаблон** или создай агента с нуля
+2. **Напиши инструкции** для агента
+3. **Загрузи файлы** для базы знаний
+4. **Протестируй агента** в секции тестирования
+5. **Используй API** для интеграции
+
+## 🔍 Примеры использования
+
+### Создание агента через API:
+```bash
+curl -X POST http://localhost:8000/gems \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Travel Assistant",
+    "system_prompt": "You are a helpful travel assistant...",
+    "tools": ["web_search", "calculator"]
+  }'
+```
+
+### Чат с агентом:
+```bash
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "gem_id": "agent_id",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+## 🎨 Шаблоны агентов
+
+- **Travel Assistant** - Помощник по путешествиям
+- **Code Reviewer** - Ревьюер кода
+- **Research Assistant** - Исследовательский помощник
+- **Customer Support** - Агент поддержки
+- **Content Writer** - Копирайтер
+- **Data Analyst** - Аналитик данных
+
+## 📄 Лицензия
+
+MIT License

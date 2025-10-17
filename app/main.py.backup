@@ -179,7 +179,7 @@ async def upload_files(gem_id: str, files: List[UploadFile] = File(...)):
 
     tmp_paths: List[Path] = []
     try:
-        for f in files:
+    for f in files:
             # Проверяем, что filename не None
             filename = f.filename or "unnamed_file"
             p = Path("/tmp") / filename
@@ -195,7 +195,7 @@ async def upload_files(gem_id: str, files: List[UploadFile] = File(...)):
         if not tmp_paths:
             raise HTTPException(400, "No valid files to process")
 
-        info = kb.ingest_files(gem_id, tmp_paths)
+    info = kb.ingest_files(gem_id, tmp_paths)
 
         # если kb_search ещё не в инструментах — добавим
         if "kb_search" not in (gem.tools or []):
@@ -203,16 +203,13 @@ async def upload_files(gem_id: str, files: List[UploadFile] = File(...)):
 
         return info
 
-    except Exception as e:
-        raise HTTPException(500, f"Error processing files: {str(e)}")
-
     finally:
-        # удаляем времянки
-        for p in tmp_paths:
-            try:
-                p.unlink()
-            except Exception:
-                pass
+    # удаляем времянки
+    for p in tmp_paths:
+        try:
+            p.unlink()
+        except Exception:
+            pass
 
 @app.get("/gems/{gem_id}/files")
 def list_agent_files(gem_id: str):
