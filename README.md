@@ -23,9 +23,9 @@ Ollama version & models
 
 Healthcheck OK
 
-![Healthcheck OK](pics/4.png)
+![Healthcheck OK](pics/5.png)
 
 
 Chat result (itinerary)
 
-![Chat result (itinerary)](pics/5.png)
+![Chat result (itinerary)](pics/4.png)
