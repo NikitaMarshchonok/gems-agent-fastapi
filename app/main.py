@@ -12,9 +12,10 @@ app = FastAPI(title="Gems Agent API", version="0.1.0")
 TOOLS_INSTRUCTION = (
     "You have access to the following tools: {tools}.\n"
     "When you want to call a tool, reply with ONLY this JSON (no extra text):\n"
-    '{"tool":"<tool_name>","input":"<text>"}\n'
+    "{{\"tool\":\"<tool_name>\",\"input\":\"<text>\"}}\n"
     "After the tool result is provided, produce a concise final answer for the user.\n"
 )
+
 
 @app.get("/health")
 def health():
