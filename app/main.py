@@ -376,6 +376,8 @@ Always be friendly, informative, and considerate of the user's budget and prefer
             <label class="block text-sm font-medium text-gray-700 mb-2">Model</label>
             <select id="model" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
               <option value="">Default (llama3.1:8b)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash (FREE)</option>
+              <option value="gpt-4o-mini">GPT-4o-mini</option>
               <option value="gpt-4">GPT-4</option>
               <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
               <option value="claude-3-sonnet">Claude 3 Sonnet</option>

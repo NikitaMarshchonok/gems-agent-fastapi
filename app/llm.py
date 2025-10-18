@@ -4,6 +4,7 @@ import re
 from typing import List, Dict, Optional
 
 import requests
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,9 +22,13 @@ OLLAMA_MODEL    = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 OPENAI_API_KEY  = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL    = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
+GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL    = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+
 # -------- Эмбеддинги --------
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
 OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
+GEMINI_EMBED_MODEL = os.getenv("GEMINI_EMBED_MODEL", "text-embedding-004")
 
 
 # ==================== helpers ====================
@@ -31,9 +36,11 @@ OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
 def _pick_backend(requested: Optional[str]) -> str:
     b = (requested or DEFAULT_BACKEND).lower()
     if b == "openai" and not OPENAI_API_KEY:
+        return "gemini" if GEMINI_API_KEY else "ollama"
+    if b == "gemini" and not GEMINI_API_KEY:
         return "ollama"
-    if b not in {"ollama", "openai"}:
-        return "ollama"
+    if b not in {"ollama", "openai", "gemini"}:
+        return "gemini" if GEMINI_API_KEY else "ollama"
     return b
 
 # убираем управляющие символы/мусор и ограничиваем длину
@@ -62,6 +69,8 @@ def chat(
         return _chat_ollama(messages, temperature, model_override or OLLAMA_MODEL)
     elif backend == "openai":
         return _chat_openai(messages, temperature, model_override or OPENAI_MODEL)
+    elif backend == "gemini":
+        return _chat_gemini(messages, temperature, model_override or GEMINI_MODEL)
     raise RuntimeError(f"Unknown backend: {backend}")
 
 def _chat_ollama(messages: List[Dict[str, str]], temperature: float, model: str) -> str:
@@ -89,19 +98,49 @@ def _chat_openai(messages: List[Dict[str, str]], temperature: float, model: str)
     data = resp.json()
     return data["choices"][0]["message"]["content"]
 
+def _chat_gemini(messages: List[Dict[str, str]], temperature: float, model: str) -> str:
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel(model)
+    
+    # Конвертируем messages в формат Gemini
+    prompt = ""
+    for msg in messages:
+        role = msg.get("role", "")
+        content = msg.get("content", "")
+        if role == "system":
+            prompt += f"System: {content}\n\n"
+        elif role == "user":
+            prompt += f"User: {content}\n\n"
+        elif role == "assistant":
+            prompt += f"Assistant: {content}\n\n"
+    
+    generation_config = genai.types.GenerationConfig(
+        temperature=temperature,
+        max_output_tokens=8192,
+    )
+    
+    response = model.generate_content(
+        prompt,
+        generation_config=generation_config
+    )
+    return response.text
+
 
 # ==================== EMBEDDINGS ====================
 
 def embed(texts: List[str], model_override: Optional[str] = None) -> List[List[float]]:
     """
-    Надёжная обёртка над Ollama/OpenAI эмбеддингами.
+    Надёжная обёртка над Ollama/OpenAI/Gemini эмбеддингами.
     - Очистка текста от управляющих символов/мусора.
     - OpenAI: /v1/embeddings (batch).
+    - Gemini: text-embedding-004 (batch).
     - Ollama: по одному тексту; пробуем {"prompt": ...} → {"input": ...};
       если пусто — фолбэки моделей (mxbai-embed-large → nomic-embed-text).
     """
     backend = EMBED_BACKEND
     if backend == "openai" and not OPENAI_API_KEY:
+        backend = "gemini" if GEMINI_API_KEY else "ollama"
+    if backend == "gemini" and not GEMINI_API_KEY:
         backend = "ollama"
 
     sanitized = [_sanitize_for_embed(str(t or "")) for t in texts]
@@ -115,6 +154,24 @@ def embed(texts: List[str], model_override: Optional[str] = None) -> List[List[f
         data = r.json()["data"]
         # гарантируем список float
         return [[float(x) for x in d["embedding"]] for d in data]
+    
+    if backend == "gemini":
+        genai.configure(api_key=GEMINI_API_KEY)
+        
+        embeddings = []
+        for text in sanitized:
+            try:
+                result = genai.embed_content(
+                    model="models/text-embedding-004",
+                    content=text,
+                    task_type="retrieval_document"
+                )
+                embeddings.append([float(x) for x in result['embedding']])
+            except Exception as e:
+                print(f"Ошибка эмбеддинга Gemini: {e}")
+                # Фолбэк на нулевой вектор
+                embeddings.append([0.0] * 768)
+        return embeddings
 
     # ---- OLLAMA ----
     url = f"{OLLAMA_BASE_URL}/api/embeddings"
