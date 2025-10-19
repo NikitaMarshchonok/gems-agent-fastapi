@@ -11,6 +11,8 @@ make install
 pip install -r requirements.txt
 ```
 
+
+
 ### 2. Запуск сервера
 
 #### Через VS Code:
