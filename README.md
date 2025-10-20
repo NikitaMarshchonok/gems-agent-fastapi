@@ -15,10 +15,14 @@ pip install -r requirements.txt
 
 ### 2. Запуск сервера
 
+
+
 #### Через VS Code:
 1. Открой проект в VS Code
 2. Нажми `F5` или `Ctrl+Shift+P` → "Debug: Start Debugging"
 3. Выбери "Run FastAPI Server"
+
+
 
 #### Через терминал:
 ```bash
